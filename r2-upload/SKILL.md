@@ -97,6 +97,7 @@ python3 scripts/r2-upload.py ./file.zip --expires 600
 - If no key is provided, the default key is `YYYY/MM/DD/<file-name>`.
 - `--public` returns a public URL. For private buckets, use presigned URLs instead.
 - Presigned URLs always use the storage endpoint (custom CDN domains are for public URLs).
+- Requests send `User-Agent: r2-upload/2.1`, so they are not blocked by Cloudflare Browser Integrity Check (error 1010).
 
 ## Programmatic usage
 

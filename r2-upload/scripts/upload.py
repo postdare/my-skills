@@ -287,6 +287,10 @@ def upload_bytes(
         "x-amz-content-sha256": payload_hash,
         "x-amz-date": amz_date,
         "content-type": content_type,
+        # Cloudflare Browser Integrity Check rejects Python's default
+        # "Python-urllib/x.y" User-Agent with HTTP 403 error 1010. Sending a
+        # descriptive UA keeps R2 custom domains reachable.
+        "user-agent": DEFAULT_USER_AGENT,
     }
     if cache_control:
         headers["cache-control"] = cache_control

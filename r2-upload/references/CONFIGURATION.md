@@ -229,6 +229,19 @@ buckets:
     region: us-east-1
 ```
 
+
+### Fetching from a custom domain
+
+If your zone has Cloudflare **Browser Integrity Check** enabled, requests
+with Python's default `User-Agent` (`Python-urllib/x.y`) are rejected with
+**HTTP 403 error 1010**. Browsers and `curl` are unaffected, so the object
+looks reachable when you test by hand.
+
+Send a descriptive `User-Agent` from any non-browser client, or skip Browser
+Integrity Check for the storage hostname. This skill already sets
+`User-Agent: r2-upload/2.1` on its own requests. See
+`references/TROUBLESHOOTING.md` for the full walkthrough.
+
 ## Multiple buckets
 
 You can define multiple buckets and switch between them:

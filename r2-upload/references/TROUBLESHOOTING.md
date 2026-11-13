@@ -7,6 +7,7 @@ Common issues and their solutions.
 - [HTTP 403 Forbidden](#http-403-forbidden)
 - [HTTP 400 Bad Request](#http-400-bad-request)
 - [HTTP 404 Not Found](#http-404-not-found)
+- [HTTP 403 with "error code: 1010"](#http-403-with-error-code-1010)
 - [Connection timeout](#connection-timeout)
 - [Config file not found](#config-file-not-found)
 - [PyYAML missing](#pyyaml-missing)
@@ -110,6 +111,65 @@ aws s3 mb s3://my-bucket --region us-east-1
 ```bash
 mc mb local/my-bucket
 ```
+
+## HTTP 403 with "error code: 1010"
+
+### Symptoms
+
+Uploading works, but fetching the object through a **custom domain** fails:
+
+```
+HTTP Error 403: Forbidden
+body: error code: 1010
+```
+
+The same URL opened in a browser, or fetched with `curl`, returns 200.
+
+### Cause
+
+Cloudflare **Browser Integrity Check** rejects requests whose `User-Agent`
+looks like a script. Python's `urllib` sends `Python-urllib/3.x` by default,
+which Cloudflare blocks on a zone with Browser Integrity Check enabled.
+
+This affects the **domain you fetch from**, not the upload itself. The upload
+goes to the storage endpoint (`*.r2.cloudflarestorage.com`), which does not
+run Browser Integrity Check.
+
+### Diagnose
+
+Compare the User-Agent:
+
+```bash
+# default curl UA -> usually 200
+curl -sI https://cdn.example.com/path/to/file.png
+
+# python default UA -> 403 error 1010
+python3 -c "import urllib.request; print(urllib.request.urlopen('https://cdn.example.com/path/to/file.png').status)"
+```
+
+If the second one fails and the first succeeds, it is this issue.
+
+### Fix
+
+**Server-side (recommended, fixes every client):** disable Browser Integrity
+Check for the zone, or skip it for the storage hostname:
+
+- Cloudflare Dashboard -> Security -> Settings -> Browser Integrity Check
+- Or add a WAF skip rule / Configuration Rule for the R2 custom domain
+
+Note: Cloudflare support cannot override this setting, and it cannot be turned
+off for `*.pages.dev` and `*.workers.dev` hostnames.
+
+**Client-side:** send a descriptive `User-Agent`. Any non-default value works;
+it does not need to look like a browser.
+
+```python
+req = urllib.request.Request(url)
+req.add_header("User-Agent", "my-app/1.0")
+```
+
+This skill already sets `User-Agent: r2-upload/2.1` on its own requests. If
+your own code fetches from a custom domain, add the header there too.
 
 ## Connection timeout
 
