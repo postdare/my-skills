@@ -121,6 +121,7 @@ url = upload_file(
 
 - `scripts/r2-upload.py`: CLI upload tool
 - `scripts/upload.py`: Python helpers (`upload_file`, `batch_upload`, `fetch_and_upload`)
+- `scripts/cf_bic.py`: manage Cloudflare Browser Integrity Check for the custom domain (fixes error 1010)
 
 ## References
 

@@ -239,8 +239,16 @@ looks reachable when you test by hand.
 
 Send a descriptive `User-Agent` from any non-browser client, or skip Browser
 Integrity Check for the storage hostname. This skill already sets
-`User-Agent: r2-upload/2.1` on its own requests. See
-`references/TROUBLESHOOTING.md` for the full walkthrough.
+`User-Agent: r2-upload/2.1` on its own requests.
+
+To fix it server-side for every client, use the bundled script:
+
+```bash
+export CLOUDFLARE_API_TOKEN=<your zone API token>
+python3 scripts/cf_bic.py --domain cdn.example.com --plan skip --yes
+```
+
+See `references/TROUBLESHOOTING.md` for the full walkthrough.
 
 ## Multiple buckets
 

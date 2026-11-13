@@ -152,10 +152,28 @@ If the second one fails and the first succeeds, it is this issue.
 ### Fix
 
 **Server-side (recommended, fixes every client):** disable Browser Integrity
-Check for the zone, or skip it for the storage hostname:
+Check for the zone, or skip it for the storage hostname.
 
-- Cloudflare Dashboard -> Security -> Settings -> Browser Integrity Check
-- Or add a WAF skip rule / Configuration Rule for the R2 custom domain
+The bundled script does this through the Cloudflare API:
+
+```bash
+export CLOUDFLARE_API_TOKEN=<your zone API token>
+python3 scripts/cf_bic.py --domain cdn.example.com --plan skip --yes
+```
+
+Two plans:
+
+| Plan | Scope | Plan requirement |
+|---|---|---|
+| `--plan skip` | Only the one hostname | **Enterprise** (the "Skip security products" option) |
+| `--plan zone` | The whole zone, every hostname | Any plan |
+
+The script is idempotent: it reads the current state first and only changes
+what is needed. `--status` prints the current state, `--remove` deletes a skip
+rule it created.
+
+If the account cannot use skip products, the script says so and points at
+`--plan zone` instead of failing silently.
 
 Note: Cloudflare support cannot override this setting, and it cannot be turned
 off for `*.pages.dev` and `*.workers.dev` hostnames.
