@@ -11,6 +11,41 @@ metadata:
 
 Upload files to R2/S3-compatible storage and return a URL.
 
+## Quick start (Cloudflare R2)
+
+```bash
+# 1. dependency
+python3 -m pip install pyyaml
+
+# 2. config -> ~/.r2-upload.yml (chmod 600)
+cat > ~/.r2-upload.yml << 'EOF'
+default: r2
+buckets:
+  r2:
+    endpoint: https://<account_id>.r2.cloudflarestorage.com
+    access_key_id: <R2 access key id>
+    secret_access_key: <R2 secret access key>
+    bucket_name: <your bucket>
+    public_url: https://cdn.example.com
+    region: auto
+EOF
+chmod 600 ~/.r2-upload.yml
+
+# 3. upload
+python3 scripts/r2-upload.py ./photo.jpg --public
+```
+
+R2 rules that break the signature or the request when wrong:
+
+- `endpoint` is the account-scoped URL with **no bucket path**.
+- `region` must be `auto`.
+- `public_url` is the CDN domain; presigned URLs use the storage endpoint.
+
+See `references/CONFIGURATION.md` for other S3-compatible providers
+(AWS S3, MinIO, Backblaze B2, Wasabi) and multi-bucket setups, and
+`references/IMAGES.md` for image key layout and cache-header guidance.
+
+
 ## Use when
 
 - Upload images, documents, or other assets to object storage
@@ -24,7 +59,7 @@ Upload files to R2/S3-compatible storage and return a URL.
 - PyYAML (`python3 -m pip install pyyaml`)
 - Config at `~/.r2-upload.yml` (or set `R2_UPLOAD_CONFIG`)
 - Decide the bucket, object key/path, and visibility (public vs presigned)
-- If you skip `--key`/`--key-prefix`, the default is `YYYY/MM/DD/<filename>`
+- If you skip `--key`/`--key-prefix`, the default is `YYYY/MM/DD/<file-name>`
 
 ## Recommended workflow
 
@@ -59,7 +94,7 @@ python3 scripts/r2-upload.py ./file.zip --expires 600
 ## Behavior notes
 
 - Default behavior returns a presigned URL (temporary access).
-- If no key is provided, the default key is `YYYY/MM/DD/<filename>`.
+- If no key is provided, the default key is `YYYY/MM/DD/<file-name>`.
 - `--public` returns a public URL. For private buckets, use presigned URLs instead.
 - Presigned URLs always use the storage endpoint (custom CDN domains are for public URLs).
 

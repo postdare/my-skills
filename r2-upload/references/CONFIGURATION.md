@@ -4,6 +4,52 @@ Complete configuration examples for different S3-compatible storage providers.
 
 > Examples use placeholder values. Replace with your own keys, bucket names, and endpoints.
 
+# Configuration Reference
+
+Complete configuration examples for different S3-compatible storage providers.
+
+> Examples use placeholder values. Replace with your own keys, bucket names, and endpoints.
+
+## Quick start: Cloudflare R2
+
+This skill targets R2. Copy this block, fill in the three values, and you are
+done:
+
+```yaml
+default: r2
+
+buckets:
+  r2:
+    endpoint: https://<account_id>.r2.cloudflarestorage.com
+    access_key_id: <R2 access key id>
+    secret_access_key: <R2 secret access key>
+    bucket_name: <your bucket>
+    public_url: https://cdn.example.com   # optional custom domain
+    region: auto                          # R2 must be "auto"
+```
+
+Save it as `~/.r2-upload.yml` and lock it down:
+
+```bash
+chmod 600 ~/.r2-upload.yml
+```
+
+Three R2 specifics that cause most failures:
+
+| Field | Value | Why |
+|---|---|---|
+| `endpoint` | `https://<account_id>.r2.cloudflarestorage.com` | **No bucket path.** A bucket in the endpoint causes HTTP 400. |
+| `region` | `auto` | Any other region makes R2 reject the SigV4 signature. |
+| `public_url` | your custom domain | Presigned URLs always use the storage endpoint, never the CDN domain. |
+
+Get the credentials from Cloudflare Dashboard -> R2 -> R2 API Tokens. Create a
+token with **Object Read & Write** scoped to the single bucket you need.
+
+R2 has no egress fees, so a public URL is usually the cheaper choice for
+assets that appear on a public site.
+
+---
+
 ## Table of contents
 
 - [Conventions](#conventions)

@@ -56,7 +56,12 @@ def load_config(config_path: Optional[str] = None) -> dict:
 
 
 def resolve_bucket_config(config: dict, bucket: Optional[str] = None) -> Tuple[str, dict]:
-    """Return (bucket_name, bucket_config) after validating required fields."""
+    """Return (alias, bucket_config) after validating required fields.
+
+    The first element is the alias used as the key under `buckets:` in the
+    config. The real bucket name that appears in the request path is
+    bucket_config["bucket_name"]. They may differ.
+    """
     bucket_name = bucket or config.get("default")
     if not bucket_name:
         raise R2UploadError("No bucket specified and no 'default' bucket in config")
@@ -254,7 +259,10 @@ def upload_bytes(
     if config is None:
         config = load_config(config_path)
 
-    bucket_name, bucket_config = resolve_bucket_config(config, bucket)
+    _alias, bucket_config = resolve_bucket_config(config, bucket)
+    # The YAML key under `buckets:` is only an alias. The real bucket name that
+    # goes on the wire is bucket_config["bucket_name"].
+    bucket_name = bucket_config["bucket_name"]
     if key is None:
         prefix = default_key_prefix()
         key = f"{prefix}/upload-{uuid.uuid4().hex[:8]}.bin"
